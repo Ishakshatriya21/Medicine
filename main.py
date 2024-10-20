@@ -68,18 +68,27 @@ def index():
 def home():
     if request.method == 'POST':
         symptoms = request.form.get('symptoms')
-        # mysysms = request.form.get('mysysms')
-        # print(mysysms)
         print(symptoms)
-        if symptoms =="Symptoms":
+
+        # Check if the user has entered the default "Symptoms" or if the input is empty
+        if not symptoms or symptoms.strip() == "Symptoms":
             message = "Please either write symptoms or you have written misspelled symptoms"
             return render_template('index.html', message=message)
         else:
-
             # Split the user's input into a list of symptoms (assuming they are comma-separated)
             user_symptoms = [s.strip() for s in symptoms.split(',')]
             # Remove any extra characters, if any
             user_symptoms = [symptom.strip("[]' ") for symptom in user_symptoms]
+
+            # Verify that each symptom is in symptoms_dict
+            invalid_symptoms = [symptom for symptom in user_symptoms if symptom not in symptoms_dict]
+
+            # Check if there are any invalid symptoms
+            if invalid_symptoms:
+                message = f"The following symptoms were not found: {', '.join(invalid_symptoms)}. please consult to your Doctor."
+                return render_template('index.html', message=message)
+
+            # Proceed with prediction if all symptoms are valid
             predicted_disease = get_predicted_value(user_symptoms)
             dis_des, precautions, medications, rec_diet, workout = helper(predicted_disease)
 
@@ -92,6 +101,7 @@ def home():
                                    workout=workout)
 
     return render_template('index.html')
+
 
 
 
